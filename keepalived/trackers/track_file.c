@@ -49,6 +49,8 @@
 #include "vrrp_data.h"
 #endif
 
+#define TMP_TRACK_FILE_DEBUG 1
+
 /* Used for initialising track files */
 static enum {
 	TRACK_FILE_NO_INIT,
@@ -568,7 +570,7 @@ update_track_file_status(tracked_file_t* tfile, int new_status)
 		else
 			status = new_status * top->weight * top->weight_multiplier;
 
-		log_message(LOG_INFO, "Object for file %s IP:%s and PORT:%s processed. New_status: %d", tfile->file_path, inet_sockaddrtos(&top->obj.checker->rs->addr), ntohs(inet_sockaddrport(&top->obj.checker->rs->addr)), new_status);
+		log_message(LOG_INFO, "Object for file %s processed. New_status: %d", tfile->file_path, new_status);
 #ifdef _WITH_VRRP_
 		if (vrrp_data)
 			process_update_vrrp_track_file_status(tfile, status, top);
@@ -609,9 +611,8 @@ process_track_file(tracked_file_t *tfile, bool init)
 		log_message(LOG_INFO, "File open error %s", tfile->file_path);
 	}
 
-	if (!init) 
-		update_track_file_status(tfile, (int)new_status);
-
+	update_track_file_status(tfile, (int)new_status);
+	
 	tfile->last_status = new_status;
 
 	log_message(LOG_INFO, "Read %s: long val %ld, val %d, new last status %d", tfile->file_path, new_status, (int)new_status, tfile->last_status);
