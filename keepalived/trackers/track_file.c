@@ -568,6 +568,7 @@ update_track_file_status(tracked_file_t* tfile, int new_status)
 		else
 			status = new_status * top->weight * top->weight_multiplier;
 
+		log_message(LOG_INFO, "Object for file %s IP:%s and PORT:%s processed. New_status: %d", tfile->file_path, inet_sockaddrtos(&top->obj.checker->rs->addr), ntohs(inet_sockaddrport(&top->obj.checker->rs->addr)), new_status);
 #ifdef _WITH_VRRP_
 		if (vrrp_data)
 			process_update_vrrp_track_file_status(tfile, status, top);
@@ -589,9 +590,11 @@ process_track_file(tracked_file_t *tfile, bool init)
 
 	if ((fd = open(tfile->file_path, O_RDONLY | O_NONBLOCK)) != -1) {
 		len = read(fd, buf, sizeof(buf) - 1);
+		log_message(LOG_INFO, "File %s, read %d bytes", tfile->file_path, len);
 		close(fd);
 		if (len > 0) {
 			buf[len] = '\0';
+			log_message(LOG_INFO, "File %s, raw content: %s", tfile->file_path, buf);
 			/* If there is an error, we want to use 0,
 			 * so we don't really mind if there is an error */
 			errno = 0;
@@ -600,17 +603,18 @@ process_track_file(tracked_file_t *tfile, bool init)
 				log_message(LOG_INFO, "Invalid number %ld read from %s - ignoring",  new_status, tfile->file_path);
 				return;
 			}
+			log_message(LOG_INFO, "File %s, new status: %d", tfile->file_path, new_status);
 		}
+	} else {
+		log_message(LOG_INFO, "File open error %s", tfile->file_path);
 	}
 
-	if (!init)
+	if (!init) 
 		update_track_file_status(tfile, (int)new_status);
 
 	tfile->last_status = new_status;
 
-#ifdef TMP_TRACK_FILE_DEBUG
-log_message(LOG_INFO, "Read %s: long val %ld, val %d, new last status %d", tfile->file_path, new_status, (int)new_status, tfile->last_status);
-#endif
+	log_message(LOG_INFO, "Read %s: long val %ld, val %d, new last status %d", tfile->file_path, new_status, (int)new_status, tfile->last_status);
 }
 
 static int
