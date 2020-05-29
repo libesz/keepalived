@@ -168,6 +168,8 @@
 #include <sys/socket.h>
 
 #ifdef LIBIPVS_USE_NL
+#include <linux/types.h>
+#include <linux/socket.h>
 #include <netlink/socket.h>
 #include <netlink/genl/genl.h>
 #ifdef _HAVE_LIBNL1_
